@@ -11,7 +11,15 @@ class ClientApiGenerator {
   ClientApiGenerator(this.service);
 
   // Subclasses can override this.
-  String get _clientType => 'RpcClient';
+  String get _clientType {
+//    service._descriptor.method.forEach((mdp) {
+//      if (mdp.clientStreaming || mdp.serverStreaming) {
+//        return 'StreamingRpcClient';
+//      }
+//    });
+//    return 'RpcClient';
+    return 'StreamingRpcClient';
+  }
 
   void generate(IndentingWriter out) {
     var className = service._descriptor.name;
@@ -32,13 +40,33 @@ class ClientApiGenerator {
     var methodName = service._methodName(m.name);
     var inputType = service._getDartClassName(m.inputType);
     var outputType = service._getDartClassName(m.outputType);
+    var returnType = m.serverStreaming ? 'Stream' : 'Future';
+    if (m.clientStreaming) {
+      inputType = 'Stream<$inputType>';
+    }
     out.addBlock(
-        'Future<$outputType> $methodName('
+        '$returnType<$outputType> $methodName('
         'ClientContext ctx, $inputType request) {',
         '}', () {
-      out.println('var emptyResponse = new $outputType();');
-      out.println('return _client.invoke(ctx, \'${service._descriptor.name}\', '
-          '\'${m.name}\', request, emptyResponse);');
+      if (m.clientStreaming && m.serverStreaming) {
+        out.println(
+            'return _client.bidirectionalStream(ctx, \'${service._descriptor.name}\', '
+            '\'${m.name}\', request);');
+      } else if (m.clientStreaming) {
+        out.println('var emptyResponse = new $outputType();');
+        out.println(
+            'return _client.clientStream(ctx, \'${service._descriptor.name}\', '
+            '\'${m.name}\', request, emptyResponse);');
+      } else if (m.serverStreaming) {
+        out.println(
+            'return _client.serverStream(ctx, \'${service._descriptor.name}\', '
+            '\'${m.name}\', request);');
+      } else {
+        out.println('var emptyResponse = new $outputType();');
+        out.println(
+            'return _client.invoke(ctx, \'${service._descriptor.name}\', '
+            '\'${m.name}\', request, emptyResponse);');
+      }
     });
   }
 }

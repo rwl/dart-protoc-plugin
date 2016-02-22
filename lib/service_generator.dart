@@ -108,10 +108,14 @@ class ServiceGenerator {
 
   void _generateStub(IndentingWriter out, MethodDescriptorProto m) {
     var methodName = _methodName(m.name);
-    var inputClass = _getDartClassName(m.inputType);
+    String inputClass = _getDartClassName(m.inputType);
     var outputClass = _getDartClassName(m.outputType);
+    var returnClass = m.serverStreaming ? 'Stream' : 'Future';
+    if (m.clientStreaming) {
+      inputClass = 'Stream<$inputClass>';
+    }
 
-    out.println('Future<$outputClass> $methodName('
+    out.println('$returnClass<$outputClass> $methodName('
         'ServerContext ctx, $inputClass request);');
   }
 
@@ -138,9 +142,8 @@ class ServiceGenerator {
 
   void _generateDispatchMethod(out) {
     out.addBlock(
-        'Future<GeneratedMessage> handleCall(ServerContext ctx, '
-        'String method, GeneratedMessage request) {',
-        '}', () {
+        'dynamic handleCall(ServerContext ctx, String method, request) {', '}',
+        () {
       out.addBlock("switch (method) {", "}", () {
         for (MethodDescriptorProto m in _methodDescriptors) {
           var methodName = _methodName(m.name);
