@@ -112,7 +112,7 @@ class ServiceGenerator {
     var outputClass = _getDartClassName(m.outputType);
     var returnClass = m.serverStreaming ? 'Stream' : 'Future';
     if (m.clientStreaming) {
-      inputClass = 'Stream<$inputClass>';
+      inputClass = 'StreamSink<$inputClass>';
     }
 
     out.println('$returnClass<$outputClass> $methodName('

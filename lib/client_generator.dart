@@ -42,7 +42,7 @@ class ClientApiGenerator {
     var outputType = service._getDartClassName(m.outputType);
     var returnType = m.serverStreaming ? 'Stream' : 'Future';
     if (m.clientStreaming) {
-      inputType = 'Stream<$inputType>';
+      inputType = 'StreamSink<$inputType>';
     }
     out.addBlock(
         '$returnType<$outputType> $methodName('
@@ -50,8 +50,10 @@ class ClientApiGenerator {
         '}', () {
       if (m.clientStreaming && m.serverStreaming) {
         out.println(
+            'var emptyResponse = new StreamController<$outputType>.broadcast();');
+        out.println(
             'return _client.bidirectionalStream(ctx, \'${service._descriptor.name}\', '
-            '\'${m.name}\', request);');
+            '\'${m.name}\', request, emptyResponse);');
       } else if (m.clientStreaming) {
         out.println('var emptyResponse = new $outputType();');
         out.println(
@@ -59,8 +61,10 @@ class ClientApiGenerator {
             '\'${m.name}\', request, emptyResponse);');
       } else if (m.serverStreaming) {
         out.println(
+            'var emptyResponse = new StreamController<$outputType>.broadcast();');
+        out.println(
             'return _client.serverStream(ctx, \'${service._descriptor.name}\', '
-            '\'${m.name}\', request);');
+            '\'${m.name}\', request, emptyResponse);');
       } else {
         out.println('var emptyResponse = new $outputType();');
         out.println(
