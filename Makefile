@@ -30,6 +30,7 @@ TEST_PROTO_LIST = \
 	service \
 	service2 \
 	service3 \
+	stream_service \
 	toplevel_import \
 	toplevel
 TEST_PROTO_DIR=$(OUTPUT_DIR)/protos

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package stream_service;
+
+message Message {
+  optional string content = 1;
+}
+
+service MessageService {
+  rpc Send (Message) returns (Message);
+  rpc Bulk (stream Message) returns (Message);
+  rpc List (Message) returns (stream Message);
+  rpc Connect (stream Message) returns (stream Message);
+}
